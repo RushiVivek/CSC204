@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
-
 using namespace std;
 
 void printFrames(const vector<int>& frames) {
@@ -24,7 +23,7 @@ int simulateFIFO(vector<int> pages, int frameCount) {
         if (inMemory.find(page) == inMemory.end()) {
             // Page Fault
             pageFaults++;
-            if (q.size() == frameCount) {
+            if ((int)q.size() == frameCount) {
                 int removed = q.front();
                 q.pop();
                 inMemory.erase(removed);
@@ -37,9 +36,12 @@ int simulateFIFO(vector<int> pages, int frameCount) {
         }
 
         // Print current state of memory
-        vector<int> mem(q.size());
-        int i = 0;
-        for (int item : q) mem[i++] = item;
+        vector<int> mem;
+        queue<int> temp = q;
+        while (!temp.empty()) {
+            mem.push_back(temp.front());
+            temp.pop();
+        }
         printFrames(mem);
     }
 
@@ -59,10 +61,10 @@ int simulateOptimal(vector<int> pages, int frameCount) {
         if (it == frames.end()) {
             // Page Fault
             pageFaults++;
-            if (frames.size() < frameCount) {
+            if ((int)frames.size() < frameCount) {
                 frames.push_back(page);
             } else {
-                // Find the page not used for the longest future time
+                // Find the page not used for the longest time in future
                 int farthest = -1, index = -1;
                 for (int j = 0; j < frames.size(); j++) {
                     int k;
@@ -101,18 +103,19 @@ int simulateLRU(vector<int> pages, int frameCount) {
         if (it == frames.end()) {
             // Page Fault
             pageFaults++;
-            if (frames.size() < frameCount) {
+            if ((int)frames.size() < frameCount) {
                 frames.push_back(page);
             } else {
                 // Find least recently used
-                int lru = i, index = -1;
+                int lruIndex = 0;
+                int minUsed = i;
                 for (int j = 0; j < frames.size(); j++) {
-                    if (lastUsed[frames[j]] < lru) {
-                        lru = lastUsed[frames[j]];
-                        index = j;
+                    if (lastUsed[frames[j]] < minUsed) {
+                        minUsed = lastUsed[frames[j]];
+                        lruIndex = j;
                     }
                 }
-                frames[index] = page;
+                frames[lruIndex] = page;
             }
             cout << "Page " << page << " -> Page Fault\t";
         } else {
